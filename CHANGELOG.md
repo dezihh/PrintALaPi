@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-11-20
+
 ### Fixed
 - Fixed GitHub Actions workflow to properly invoke customize-image.sh with required image path argument
 - Added release creation capability when version tags are pushed
@@ -48,5 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Contributing guidelines
 - MIT License
 
-[Unreleased]: https://github.com/dezihh/PrintALaPi/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/dezihh/PrintALaPi/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/dezihh/PrintALaPi/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/dezihh/PrintALaPi/releases/tag/v1.0.0
