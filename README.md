@@ -1,5 +1,9 @@
 # PrintALaPi 🖨️
 
+[![Release](https://img.shields.io/github/v/release/dezihh/PrintALaPi)](https://github.com/dezihh/PrintALaPi/releases)
+[![License](https://img.shields.io/github/license/dezihh/PrintALaPi)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/dezihh/PrintALaPi/build-image.yml?branch=main)](https://github.com/dezihh/PrintALaPi/actions)
+
 Give your retired Raspberry Pi new life as a powerful print server!
 
 PrintALaPi transforms a standard Raspberry Pi with Raspbian OS into a fully-featured network print server with advanced features like SNMP monitoring, captive portal setup, web-based configuration, and a read-only filesystem for enhanced reliability.
@@ -15,7 +19,7 @@ PrintALaPi transforms a standard Raspberry Pi with Raspbian OS into a fully-feat
 
 ## Quick Start
 
-### Option 1: Download Pre-built Image (Coming Soon)
+### Option 1: Download Pre-built Image
 
 1. Download the latest PrintALaPi image from the [Releases](https://github.com/dezihh/PrintALaPi/releases) page
 2. Flash the image to an SD card using [Raspberry Pi Imager](https://www.raspberrypi.org/software/) or [balenaEtcher](https://www.balena.io/etcher/)
