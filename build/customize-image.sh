@@ -1,70 +1,124 @@
-#!/bin/bash
-set -e
+ url=https://github.com/dezihh/PrintALaPi/blob/master/build/customize-image.sh
+#!/usr/bin/env bash
+set -euo pipefail
+# Anpassung: erkennt .xz/.gz/.zip und dekomprimiert automatisch, danach setzt IMG auf die .img-Datei
 
-# Script to customize Raspberry Pi OS image for PrintALaPi
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 <image-archive-or-img>"
+  exit 1
+fi
 
-IMAGE="raspios.img"
-MOUNT_BOOT="/tmp/printalapy-boot"
-MOUNT_ROOT="/tmp/printalapy-root"
+ARCHIVE="$1"
+WORKDIR="$(pwd)"
+TMPDIR="$(mktemp -d)"
+cleanup() { rm -rf "$TMPDIR"; }
+trap cleanup EXIT
 
-echo "Setting up loop device..."
-LOOP_DEVICE=$(sudo losetup -f --show -P "$IMAGE")
-echo "Using loop device: $LOOP_DEVICE"
+# Ensure necessary tools
+if ! command -v file >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y file; fi
+if ! command -v xz >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xz-utils; fi
+if ! command -v unzip >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y unzip; fi
+if ! command -v kpartx >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y kpartx; fi
 
-# Wait for partitions to be available
-sleep 2
+echo "Input: $ARCHIVE"
+if [ ! -f "$ARCHIVE" ]; then
+  echo "Datei $ARCHIVE nicht gefunden."
+  exit 2
+fi
 
-# Create mount points
-sudo mkdir -p "$MOUNT_BOOT" "$MOUNT_ROOT"
+MIME=$(file --brief --mime-type "$ARCHIVE")
+case "$MIME" in
+  application/x-xz|application/x-xz-compressed|application/x-compressed)
+    echo "Detected xz compressed archive, decompressing..."
+    cp "$ARCHIVE" "$TMPDIR/"
+    BASENAME="$(basename "$ARCHIVE")"
+    (cd "$TMPDIR" && xz -d -k "$BASENAME")
+    IMG_CANDIDATE="$(find "$TMPDIR" -type f -name '*.img' -print -quit)"
+    ;;
+  application/gzip)
+    echo "Detected gzip compressed archive, decompressing..."
+    cp "$ARCHIVE" "$TMPDIR/"
+    BASENAME="$(basename "$ARCHIVE")"
+    (cd "$TMPDIR" && gunzip -k "$BASENAME")
+    IMG_CANDIDATE="$(find "$TMPDIR" -type f -name '*.img' -print -quit)"
+    ;;
+  application/zip)
+    echo "Detected zip archive, extracting..."
+    unzip -d "$TMPDIR" "$ARCHIVE"
+    IMG_CANDIDATE="$(find "$TMPDIR" -type f -name '*.img' -print -quit)"
+    ;;
+  application/octet-stream|inode/x-empty)
+    # could already be an .img
+    if [[ "$ARCHIVE" =~ \.img$ ]]; then
+      IMG_CANDIDATE="$(realpath "$ARCHIVE")"
+    else
+      echo "Unbekanntes Format, versuche .img zu finden..."
+      IMG_CANDIDATE="$(find "$WORKDIR" -maxdepth 1 -type f -name '*.img' -print -quit)"
+    fi
+    ;;
+  *)
+    # fallback: if ends with .xz/.img.gz/.zip
+    case "$ARCHIVE" in
+      *.xz) xz -d -k "$ARCHIVE"; IMG_CANDIDATE="${ARCHIVE%.xz}";;
+      *.gz) gunzip -k "$ARCHIVE"; IMG_CANDIDATE="${ARCHIVE%.gz}";;
+      *.zip) unzip -d "$TMPDIR" "$ARCHIVE"; IMG_CANDIDATE="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
+      *.img) IMG_CANDIDATE="$(realpath "$ARCHIVE")";;
+      *) echo "Unbekanntes Archivformat: $ARCHIVE"; exit 3;;
+    esac
+    ;;
+esac
 
-# Mount partitions
-echo "Mounting partitions..."
-sudo mount "${LOOP_DEVICE}p1" "$MOUNT_BOOT"
-sudo mount "${LOOP_DEVICE}p2" "$MOUNT_ROOT"
+if [ -z "${IMG_CANDIDATE:-}" ] || [ ! -f "$IMG_CANDIDATE" ]; then
+  echo "Keine .img Datei gefunden nach Dekompression."
+  exit 4
+fi
 
-echo "Copying setup files to image..."
+IMG="$(realpath "$IMG_CANDIDATE")"
+echo "Using image: $IMG"
 
-# Copy installation scripts
-sudo mkdir -p "$MOUNT_ROOT/opt/printalapy"
-sudo cp -r ../scripts/* "$MOUNT_ROOT/opt/printalapy/"
-sudo cp -r ../config "$MOUNT_ROOT/opt/printalapy/"
-sudo cp -r ../webserver "$MOUNT_ROOT/opt/printalapy/"
+# Beispiel: mounten und Repo kopieren (wie in README vorgesehen)
+LOOPDEV="$(sudo losetup --show -fP "$IMG")"
+echo "Loop device: $LOOPDEV"
 
-# Make scripts executable
-sudo chmod +x "$MOUNT_ROOT/opt/printalapy/"*.sh
-sudo chmod +x "$MOUNT_ROOT/opt/printalapy/webserver/"*.py
+# Partition devices (p1 boot, p2 root) - kpartx alternative if needed
+BOOT="${LOOPDEV}p1"
+ROOT="${LOOPDEV}p2"
+# Falls Kernel nicht pN unterstützt, fallback zu kpartx
+if [ ! -b "$BOOT" ] || [ ! -b "$ROOT" ]; then
+  echo "Kernel-loop partition device nicht vorhanden, verwende kpartx."
+  sudo kpartx -av "$IMG"
+  MAPPREFIX="$(basename "$LOOPDEV")"
+  # find mapping like /dev/mapper/loop0p1
+  BOOT="$(ls /dev/mapper | grep "${MAPPREFIX}p1" | head -n1)"
+  ROOT="$(ls /dev/mapper | grep "${MAPPREFIX}p2" | head -n1)"
+  BOOT="/dev/mapper/$BOOT"
+  ROOT="/dev/mapper/$ROOT"
+fi
 
-# Create systemd service for first boot setup
-sudo tee "$MOUNT_ROOT/etc/systemd/system/printalapy-setup.service" > /dev/null <<EOF
-[Unit]
-Description=PrintALaPi First Boot Setup
-After=network.target
-Before=cups.service
+sudo mkdir -p /mnt/rpi_boot /mnt/rpi_root
+sudo mount "$BOOT" /mnt/rpi_boot
+sudo mount "$ROOT" /mnt/rpi_root
 
-[Service]
-Type=oneshot
-ExecStart=/opt/printalapy/setup.sh
-RemainAfterExit=yes
+# Kopiere Repo ins Image
+echo "Kopiere Repo nach /opt/printalapy im Image..."
+sudo rsync -a --delete "$WORKDIR/../PrintALaPi/" /mnt/rpi_root/opt/printalapy/
 
-[Install]
-WantedBy=multi-user.target
-EOF
+# qemu für chroot einrichten
+if [ -x /usr/bin/qemu-arm-static ]; then
+  sudo cp /usr/bin/qemu-arm-static /mnt/rpi_root/usr/bin/ || true
+fi
 
-# Enable the service
-sudo ln -sf /etc/systemd/system/printalapy-setup.service \
-  "$MOUNT_ROOT/etc/systemd/system/multi-user.target.wants/printalapy-setup.service"
+for fs in dev proc sys run; do sudo mount --bind /$fs /mnt/rpi_root/$fs || true; done
 
-# Enable SSH by default
-sudo touch "$MOUNT_BOOT/ssh"
+# chroot und ausführen (non-interactive)
+echo "Starte chroot und führe build scripts aus..."
+sudo chroot /mnt/rpi_root /bin/bash -lc "cd /opt/printalapy/build && ./customize-image.sh || true"
 
-echo "Unmounting partitions..."
-sudo umount "$MOUNT_BOOT"
-sudo umount "$MOUNT_ROOT"
+echo "Fertig. Unmounten..."
+for fs in run dev sys proc; do sudo umount /mnt/rpi_root/$fs || true; done
+sudo umount /mnt/rpi_boot || true
+sudo umount /mnt/rpi_root || true
+if command -v kpartx >/dev/null 2>&1; then sudo kpartx -d "$IMG" || true; fi
+sudo losetup -d "$LOOPDEV" || true
 
-# Detach loop device
-sudo losetup -d "$LOOP_DEVICE"
-
-# Rename the image
-mv "$IMAGE" printalapy.img
-
-echo "Image customization complete!"
+echo "Image bereit: $IMG"
