@@ -1,41 +1,62 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ARCHIVE="$1"
-TMPDIR="$(mktemp -d)"
-cleanup(){ rm -rf "$TMPDIR"; }
-trap cleanup EXIT
+# build/customize-image.sh
+# Usage:
+#   Outside chroot: ./build/customize-image.sh <raspios-archive-or-img> [<path-to-repo-root>]
+#   Inside chroot:  ./build/customize-image.sh --in-chroot
+#
+# Dieses Script:
+# - erkennt .img/.img.xz/.xz/.img.gz/.gz/.zip automatisch und dekomprimiert in ein Tempdir
+# - hängt die Image-Partitionen ein, kopiert das Repo nach /opt/printalapy
+# - richtet qemu-arm-static + bind-mounts ein und chrootet
+# - führt im Chroot die Setup-Skripte aus (scripts/setup.sh oder einzelne setup-* Skripte)
+# - räumt sauber auf
 
-# ensure helpers
-sudo apt-get update -y
-sudo apt-get install -y xz-utils unzip gzip file || true
+REPO_HINT="${2:-}"   # optionaler Pfad zum Repo root, default ist parent vom build dir
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="${REPO_HINT:-$(realpath "${SCRIPT_DIR}/..")}"
 
-# prefer explicit suffix checks first (handles .img.xz, .img.gz, .img.zip)
-case "$ARCHIVE" in
-  *.img.xz) echo "Found .img.xz -> unxz keeping original"; cp "$ARCHIVE" "$TMPDIR/"; (cd "$TMPDIR" && xz -d -k "$(basename "$ARCHIVE")"); IMG_CAND="$TMPDIR/$(basename "${ARCHIVE%.xz}")";;
-  *.img.gz) echo "Found .img.gz -> gunzip keeping original"; cp "$ARCHIVE" "$TMPDIR/"; (cd "$TMPDIR" && gunzip -k "$(basename "$ARCHIVE")"); IMG_CAND="$TMPDIR/$(basename "${ARCHIVE%.gz}")";;
-  *.img.zip) echo "Found .img.zip -> unzip"; unzip -d "$TMPDIR" "$ARCHIVE"; IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-  *.xz) echo "Found .xz -> try to extract .img inside"; cp "$ARCHIVE" "$TMPDIR/"; (cd "$TMPDIR" && xz -d -k "$(basename "$ARCHIVE")"); IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-  *.gz) echo "Found .gz -> try to extract .img inside"; cp "$ARCHIVE" "$TMPDIR/"; (cd "$TMPDIR" && gunzip -k "$(basename "$ARCHIVE")"); IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-  *.zip) echo "Found .zip -> unzip"; unzip -d "$TMPDIR" "$ARCHIVE"; IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-  *.img) IMG_CAND="$(realpath "$ARCHIVE")";;
-  *) 
-    # fallback: inspect MIME/type then try extensions
-    MIME=$(file --brief --mime-type "$ARCHIVE" || echo "")
-    case "$MIME" in
-      application/x-xz|application/x-xz-compressed) cp "$ARCHIVE" "$TMPDIR" && (cd "$TMPDIR" && xz -d -k "$(basename "$ARCHIVE")") && IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-      application/gzip) cp "$ARCHIVE" "$TMPDIR" && (cd "$TMPDIR" && gunzip -k "$(basename "$ARCHIVE")") && IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-      application/zip) unzip -d "$TMPDIR" "$ARCHIVE" && IMG_CAND="$(find "$TMPDIR" -type f -name '*.img' -print -quit)";;
-      *) echo "Unknown format; try passing .img/.img.xz/.img.gz/.zip explicitly"; exit 2;;
-    esac
-    ;;
-esac
+# If called inside chroot:
+if [ "${1:-}" = "--in-chroot" ]; then
+  echo "== In-Chroot: Konfiguration im Image ausführen =="
+  set -x
+  # Minimal: update & run repo setup scripts (non-interactive if possible)
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get update -y || true
+    # install useful packages in chroot if scripts expect them
+    apt-get install -y --no-install-recommends ca-certificates rsync || true
+  fi
 
-if [ -z "${IMG_CAND:-}" ] || [ ! -f "$IMG_CAND" ]; then
-  echo "Keine .img-Datei gefunden nach Dekompression."
-  exit 3
+  # Prefer main setup script if present
+  if [ -x /opt/printalapy/scripts/setup.sh ]; then
+    echo "Running /opt/printalapy/scripts/setup.sh"
+    /opt/printalapy/scripts/setup.sh || true
+  else
+    echo "Kein scripts/setup.sh gefunden, versuche einzelne setup-*.sh"
+    for s in /opt/printalapy/scripts/setup-*.sh; do
+      [ -f "$s" ] || continue
+      echo "Running $s"
+      chmod +x "$s" || true
+      "$s" || true
+    done
+  fi
+
+  echo "In-Chroot tasks abgeschlossen."
+  exit 0
 fi
 
-IMG="$(realpath "$IMG_CAND")"
-echo "Using image: $IMG"
-# ...weiter wie zuvor (losetup/kpartx/mount/chroot)...
+# Outside-chroot flow:
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 <image-archive-or-img> [<repo-root>]"
+  exit 2
+fi
+
+ARCHIVE="$1"
+TMPDIR="$(mktemp -d)"
+cleanup() {
+  set +e
+  echo "== Cleanup =="
+  # unmount any mounts in TMPMOUNT
+  if mountpoint -q /mnt/rpi_root/run 2>/dev/null; then umount /mnt/rpi_root/run; fi
+  for fs in dev proc sys
