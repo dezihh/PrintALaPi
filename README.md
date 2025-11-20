@@ -33,7 +33,14 @@ cd PrintALaPi
 # Run the build script (requires Linux with loop device support)
 cd build
 sudo ./customize-image.sh
+
+# The built image will be located at:
+# build/printalapy.img
 ```
+
+**Build Output Location:**
+- Local builds: The customized image is saved as `build/printalapy.img`
+- GitHub Actions: Build artifacts are uploaded as `printalapy-image` containing `printalapy.img.xz`
 
 ## Configuration
 

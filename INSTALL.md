@@ -55,7 +55,48 @@ This guide provides detailed instructions for installing and configuring PrintAL
    - Connect power supply
    - Wait 5-10 minutes for initial setup
 
-### Method 2: Manual Installation
+### Method 2: Build Image from Source
+
+If you want to customize the image or build it yourself:
+
+1. **Prerequisites**
+   - Linux system with sudo access
+   - Required packages: `qemu-user-static`, `binfmt-support`, `parted`, `kpartx`, `wget`, `xz-utils`
+
+2. **Clone Repository**
+   ```bash
+   git clone https://github.com/dezihh/PrintALaPi.git
+   cd PrintALaPi
+   ```
+
+3. **Download Base Image**
+   ```bash
+   cd build
+   wget -O raspios.img.xz https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf-lite.img.xz
+   ```
+
+4. **Run Build Script**
+   ```bash
+   chmod +x customize-image.sh
+   sudo ./customize-image.sh raspios.img.xz
+   ```
+
+5. **Locate Build Output**
+   The customized image will be created at:
+   ```
+   build/printalapy.img
+   ```
+   
+   You can then compress it for distribution:
+   ```bash
+   xz -9 -T0 printalapy.img
+   ```
+   
+   This creates `build/printalapy.img.xz` which can be flashed to an SD card.
+
+**Note:** GitHub Actions automatically builds images on every push to main. These artifacts are available in the Actions tab and retained for 30 days.
+
+### Method 3: Manual Installation
 
 1. **Flash Raspberry Pi OS Lite**
    - Download [Raspberry Pi OS Lite](https://www.raspberrypi.org/software/operating-systems/)
