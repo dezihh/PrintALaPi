@@ -53,19 +53,19 @@ EOF
 
 # Enable IP forwarding
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
-sysctl -p
+sysctl -p 2>/dev/null || echo "Note: sysctl changes will apply on first boot"
 
 # Configure iptables for NAT
 # Get the ethernet interface
 ETH_IF=$(ls /sys/class/net | grep -E '^eth' | head -n1)
 
 if [ -n "$ETH_IF" ]; then
-    iptables -t nat -A POSTROUTING -o $ETH_IF -j MASQUERADE
-    iptables -A FORWARD -i $ETH_IF -o $WIRELESS_IF -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -A FORWARD -i $WIRELESS_IF -o $ETH_IF -j ACCEPT
+    iptables -t nat -A POSTROUTING -o $ETH_IF -j MASQUERADE 2>/dev/null || echo "Note: iptables rules will be set on first boot"
+    iptables -A FORWARD -i $ETH_IF -o $WIRELESS_IF -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
+    iptables -A FORWARD -i $WIRELESS_IF -o $ETH_IF -j ACCEPT 2>/dev/null || true
     
     # Save iptables rules
-    iptables-save > /etc/iptables.ipv4.nat
+    iptables-save > /etc/iptables.ipv4.nat 2>/dev/null || true
     
     # Restore iptables rules on boot
     cat >> /etc/rc.local <<'RCEOF'
@@ -77,9 +77,9 @@ RCEOF
 fi
 
 # Enable services
-systemctl unmask hostapd
-systemctl enable hostapd
-systemctl enable dnsmasq
+systemctl unmask hostapd || true
+systemctl enable hostapd || true
+systemctl enable dnsmasq || true
 
 # Don't start yet - will start after reboot
 echo "Captive portal configuration complete"

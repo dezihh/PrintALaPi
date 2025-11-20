@@ -92,8 +92,10 @@ EOF
 # Add cups user to lpadmin group
 usermod -a -G lpadmin pi || true
 
-# Enable and start CUPS service
-systemctl enable cups
-systemctl restart cups
+# Enable CUPS service (this works in chroot)
+systemctl enable cups || true
+
+# Try to restart CUPS service (this will fail in chroot but work on real system)
+systemctl restart cups 2>/dev/null || echo "Note: CUPS service will start on first boot"
 
 echo "CUPS configuration complete"

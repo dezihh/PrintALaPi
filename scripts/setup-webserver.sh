@@ -23,9 +23,11 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-# Enable and start the service
-systemctl daemon-reload
-systemctl enable printalapy-web.service
-systemctl start printalapy-web.service
+# Enable the service (daemon-reload and enable work in chroot)
+systemctl daemon-reload || true
+systemctl enable printalapy-web.service || true
+
+# Try to start the service (this will fail in chroot but work on real system)
+systemctl start printalapy-web.service 2>/dev/null || echo "Note: Web server will start on first boot"
 
 echo "Web server configuration complete"

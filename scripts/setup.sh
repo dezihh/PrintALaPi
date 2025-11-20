@@ -55,10 +55,16 @@ log "Configuring Read-only filesystem with OverlayFS..."
 bash "$INSTALL_DIR/scripts/setup-overlayfs.sh" >> "$LOG_FILE" 2>&1
 
 log "PrintALaPi setup completed successfully!"
-log "System will reboot in 10 seconds..."
 
-# Disable this service so it doesn't run again
-systemctl disable printalapy-setup.service
-
-sleep 10
-reboot
+# Check if running in chroot or on real system
+if [ -f /.dockerenv ] || [ ! -d /proc/1 ] || ! ps -p 1 | grep -q systemd; then
+    log "Running in chroot environment - skipping reboot and service management"
+else
+    log "System will reboot in 10 seconds..."
+    
+    # Disable this service so it doesn't run again
+    systemctl disable printalapy-setup.service || true
+    
+    sleep 10
+    reboot
+fi
