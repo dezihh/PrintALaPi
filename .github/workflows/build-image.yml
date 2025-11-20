@@ -37,6 +37,7 @@ jobs:
     - name: Mount and customize image
       run: |
         cd build
+        chmod +x customize-image.sh
         sudo ./customize-image.sh
       
     - name: Create release artifact
