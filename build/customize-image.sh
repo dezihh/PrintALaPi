@@ -133,6 +133,11 @@ echo "Copying PrintALaPi files to image..."
 mkdir -p "${MOUNT_POINT}/opt/printalapy"
 rsync -av --exclude='.git' --exclude='build' "${REPO_DIR}/" "${MOUNT_POINT}/opt/printalapy/"
 
+# Copy this script itself to a temporary location in the image for chroot execution
+echo "Copying build script to image for chroot execution..."
+cp "${SCRIPT_DIR}/customize-image.sh" "${MOUNT_POINT}/tmp/customize-image.sh"
+chmod +x "${MOUNT_POINT}/tmp/customize-image.sh"
+
 # Setup for chroot
 echo "Preparing chroot environment..."
 cp /usr/bin/qemu-arm-static "${MOUNT_POINT}/usr/bin/" 2>/dev/null || echo "qemu-arm-static not found, skipping"
@@ -145,7 +150,7 @@ mount -o bind /dev/pts "${MOUNT_POINT}/dev/pts" 2>/dev/null || true
 
 # Run setup in chroot
 echo "Running setup scripts in chroot..."
-chroot "${MOUNT_POINT}" /opt/printalapy/build/customize-image.sh --in-chroot
+chroot "${MOUNT_POINT}" /tmp/customize-image.sh --in-chroot
 
 # Create output image
 echo "Creating output image..."

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup CUPS print server
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up CUPS print server..."
 
@@ -92,8 +92,10 @@ EOF
 # Add cups user to lpadmin group
 usermod -a -G lpadmin pi || true
 
-# Enable and start CUPS service
-systemctl enable cups
-systemctl restart cups
+# Enable CUPS service (this works in chroot)
+systemctl enable cups || true
+
+# Try to restart CUPS service (this will fail in chroot but work on real system)
+systemctl restart cups 2>/dev/null || echo "Note: CUPS service will start on first boot"
 
 echo "CUPS configuration complete"

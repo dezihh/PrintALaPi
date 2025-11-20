@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup SNMP monitoring for printers
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up SNMP monitoring..."
 
@@ -49,8 +49,10 @@ EOF
 
 chmod +x /opt/printalapy/check-printer-status.sh
 
-# Enable and start SNMP service
-systemctl enable snmpd
-systemctl restart snmpd
+# Enable SNMP service (this works in chroot)
+systemctl enable snmpd || true
+
+# Try to restart SNMP service (this will fail in chroot but work on real system)
+systemctl restart snmpd 2>/dev/null || echo "Note: SNMP service will start on first boot"
 
 echo "SNMP configuration complete"

@@ -1,12 +1,12 @@
 #!/bin/bash
 # Setup OverlayFS for read-only filesystem protection
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up OverlayFS for read-only filesystem..."
 
 # Install overlay-fs support
-apt-get install -y overlayroot
+apt-get install -y overlayroot || echo "Warning: Could not install overlayroot package"
 
 # Configure overlayroot
 cat > /etc/overlayroot.conf <<'EOF'
