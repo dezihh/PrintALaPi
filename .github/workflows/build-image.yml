@@ -1,0 +1,52 @@
+name: Build PrintALaPi Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          qemu-user-static \
+          binfmt-support \
+          parted \
+          kpartx \
+          wget \
+          curl \
+          xz-utils
+    
+    - name: Download Raspberry Pi OS Lite
+      run: |
+        mkdir -p build
+        cd build
+        wget -O raspios.img.xz https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf-lite.img.xz
+        xz -d raspios.img.xz
+        
+    - name: Mount and customize image
+      run: |
+        cd build
+        sudo ./customize-image.sh
+      
+    - name: Create release artifact
+      run: |
+        cd build
+        xz -9 -T0 printalapy.img
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: printalapy-image
+        path: build/printalapy.img.xz
+        retention-days: 30

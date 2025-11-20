@@ -1,0 +1,35 @@
+# Build artifacts
+build/*.img
+build/*.xz
+*.img
+*.xz
+
+# Temporary files
+*.tmp
+*.log
+/tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Raspberry Pi specific
+*.backup
