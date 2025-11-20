@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup CUPS print server
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up CUPS print server..."
 

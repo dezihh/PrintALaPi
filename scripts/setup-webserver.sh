@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup web server for PrintALaPi configuration
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up configuration web server..."
 

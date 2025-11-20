@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup SNMP monitoring for printers
 
-set -e
+# Note: We don't use 'set -e' to allow the script to continue even if some commands fail
 
 echo "Setting up SNMP monitoring..."
 

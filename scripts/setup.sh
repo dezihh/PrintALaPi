@@ -2,7 +2,8 @@
 # Main setup script for PrintALaPi
 # This script runs on first boot and configures the Raspberry Pi as a print server
 
-set -e
+# Note: We don't use 'set -e' here because some commands may fail in chroot environment
+# but we want to continue with the setup
 
 INSTALL_DIR="/opt/printalapy"
 LOG_FILE="/var/log/printalapy-setup.log"
