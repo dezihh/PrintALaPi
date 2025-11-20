@@ -18,8 +18,27 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check if VERSION changed and create tag
+      if: github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
+      run: |
+        VERSION=$(cat VERSION | tr -d '[:space:]')
+        if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+          echo "Tag v${VERSION} already exists"
+          echo "SKIP_BUILD=true" >> $GITHUB_ENV
+        else
+          echo "Creating and pushing tag v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+          echo "SKIP_BUILD=true" >> $GITHUB_ENV
+        fi
       
     - name: Install dependencies
+      if: env.SKIP_BUILD != 'true'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -32,6 +51,7 @@ jobs:
           xz-utils
     
     - name: Download Raspberry Pi OS Lite
+      if: env.SKIP_BUILD != 'true'
       run: |
         mkdir -p build
         cd build
@@ -39,17 +59,20 @@ jobs:
         xz -d raspios.img.xz
         
     - name: Mount and customize image
+      if: env.SKIP_BUILD != 'true'
       run: |
         cd build
         chmod +x customize-image.sh
         sudo ./customize-image.sh raspios.img
       
     - name: Create release artifact
+      if: env.SKIP_BUILD != 'true'
       run: |
         cd build
         xz -9 -T0 printalapy.img
         
     - name: Upload artifact
+      if: env.SKIP_BUILD != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: printalapy-image
