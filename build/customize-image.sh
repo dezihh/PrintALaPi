@@ -6,12 +6,15 @@ set -euo pipefail
 #   Outside chroot: ./build/customize-image.sh <raspios-archive-or-img> [<path-to-repo-root>]
 #   Inside chroot:  ./build/customize-image.sh --in-chroot
 #
+# Output: The customized image is saved as build/printalapy.img
+#
 # Dieses Script:
 # - erkennt .img/.img.xz/.xz/.img.gz/.gz/.zip automatisch und dekomprimiert in ein Tempdir
 # - hängt die Image-Partitionen ein, kopiert das Repo nach /opt/printalapy
 # - richtet qemu-arm-static + bind-mounts ein und chrootet
 # - führt im Chroot die Setup-Skripte aus (scripts/setup.sh oder einzelne setup-* Skripte)
 # - räumt sauber auf
+# - speichert das fertige Image als build/printalapy.img
 
 REPO_HINT="${2:-}"   # optionaler Pfad zum Repo root, default ist parent vom build dir
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -152,4 +155,17 @@ echo "Creating output image..."
 OUTPUT_IMG="${SCRIPT_DIR}/printalapy.img"
 cp "${IMG_FILE}" "${OUTPUT_IMG}"
 
-echo "Build complete! Output: ${OUTPUT_IMG}"
+echo ""
+echo "=========================================="
+echo "Build complete!"
+echo "=========================================="
+echo "Output image location: ${OUTPUT_IMG}"
+echo ""
+echo "To compress for distribution:"
+echo "  xz -9 -T0 ${OUTPUT_IMG}"
+echo ""
+echo "To flash to SD card, use:"
+echo "  - Raspberry Pi Imager"
+echo "  - balenaEtcher"
+echo "  - dd command"
+echo "=========================================="
