@@ -3,6 +3,7 @@
 # Führt Installation, Datei-Erzeugung und Aktivierung der Dienste aus.
 # Ausführen als root: sudo ./setup_captive_portal.sh
 
+
 set -e
 
 WLAN_IF="wlan0"
