@@ -11,5 +11,6 @@ sudo usermod -aG lpadmin $USER
 sudo systemctl enable --now cups avahi-daemon
 
 
+sudo wget -O /etc/cups/cupsd.conf "https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/cupsd.conf"
 
-sudo wget https://github.com/dezihh/PrintALaPi/blob/master/scripts/cupsd.conf -c /etc/cups/cupsd.conf
+
