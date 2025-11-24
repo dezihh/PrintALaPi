@@ -12,3 +12,4 @@ sudo systemctl enable --now cups avahi-daemon
 
 
 
+sudo wget https://github.com/dezihh/PrintALaPi/blob/master/scripts/cupsd.conf -c /etc/cups/cupsd.conf
