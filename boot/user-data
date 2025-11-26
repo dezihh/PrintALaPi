@@ -1,3 +1,53 @@
 #cloud-config
+
+hostname: PrintaLaPi
+
+keyboard:
+  layout: de
+  variant: de
+  options: ctrl:nocaps
+
+ssh_pwauth: true
+
+users:
+  - name: var1
+    gecos: var1
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    lock_passwd: false
+    passwd: $5$hkui88$nvZgIle31cNpryjRfO9uArF7DYiBcWEnjqq7L1AQNN3
+
+  - name: var2
+    gecos: var2
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    ssh_import_id: 
+      - gh:dezihh
+    lock_passwd: false
+
+# Set the system time
+ntp:
+  servers:
+    - ntp.ubuntu.com
+
+# Update apt database and upgrade packages on first boot
+package_update: true
+package_upgrade: true
+
+# Install additional packages on first boot
+packages:
+  - snmp
+
+# Write arbitrary files to the file-system
+write_files:
+  - path: /etc/default/zramswap.1
+    content: |
+      ALGO=lz4
+      PERCENT=25
+      PRIORITY=100
+    permissions: '0644'
+    owner: root:root
+
+# Run arbitrary commands at rc.local like time
 runcmd:
   - [bash, /boot/firstrun.sh]
