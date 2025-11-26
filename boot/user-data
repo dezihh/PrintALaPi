@@ -55,8 +55,5 @@ write_files:
     permissions: '0755'
 
 runcmd:
-  - ["/usr/bin/systemctl", "enable, "ssh"] 
-  
-  - ["/bin/touch","ssh"] 
-  - ["/boot/firmware/firstrun.sh"]
+  - ["/usr/bin/systemctl", "enable ssh"] 
 
