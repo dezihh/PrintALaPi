@@ -1,7 +1,5 @@
 #cloud-config
 
-hostname: PrintaLaPi
-
 keyboard:
   layout: de
   variant: de
@@ -15,30 +13,21 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     lock_passwd: false
-    passwd: $6$y85Kopt7KicyJb/B$YHa.NACkWd/m6Ps3bLGj82CwMHmFb/iEarkBRaRkNNbolj65pSn3hfurR2busThK1Jsi07/jTspyLiiQaCTAp1
+    passwd: '$6$y85Kopt7KicyJb/B$YHa.NACkWd/m6Ps3bLGj82CwMHmFb/iEarkBRaRkNNbolj65pSn3hfurR2busThK1Jsi07/jTspyLiiQaCTAp1'
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINu7NSzoROSCDrt/7C2zIW7k2YTo4H5nbQPI2PmsOFVo derek@t495"
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJ3Bhb61iZo38+cghPjlIkusOLqVUIwbURCESyLL6Cdb7drN8+0l+5VlhuKH5NeeWQrgM8RwI02HWfCwOqGBuO86cG7uUl+Fi7PENtpKy8KGBOeEutFrQcgTRnjeQiZB2on1X+KItgO/sla46L0qH9aKzoB6NzuuVWnopqvqs+HK/RshLmXCBmGpPF2UqUJIO69IhcbvmwnZPgfvOGSFpY9/9nV/+ZaABiEerj1i9bjJvVoLfZTQ8oOH5IQdDE/qZorWNIzDaBLlkn0929273FE48Q/b8RIwdx6fV137Ysbq67SJtvyP4eCRjZk8ux/BqnktSGD/6uKC8KgtuFAfLd root@knx"
 
-  - name: var2
-    gecos: var2
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: sudo
-    ssh_import_id: 
-      - gh:dezihh
-    lock_passwd: false
-
-# Set the system time
 ntp:
   servers:
     - ntp.ubuntu.com
 
-# Update apt database and upgrade packages on first boot
 package_update: true
 package_upgrade: true
 
-# Install additional packages on first boot
 packages:
   - snmp
 
-# Write arbitrary files to the file-system
 write_files:
   - path: /etc/default/zramswap.1
     content: |
@@ -48,9 +37,7 @@ write_files:
     permissions: '0644'
     owner: root:root
 
-# Run arbitrary commands at rc.local like time
 runcmd:
-  - [bash, firstrun.sh]
-  - [touch, DA]
-  - systemctl enable ssh
-  - systemctl start ssh
+  - ["/boot/firstrun.sh"]
+  - ["/bin/touch","/boot/ssh"]                                                       "]
+
