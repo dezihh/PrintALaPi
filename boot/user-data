@@ -51,3 +51,5 @@ write_files:
 # Run arbitrary commands at rc.local like time
 runcmd:
   - [bash, /boot/firstrun.sh]
+  - systemctl enable ssh
+  - systemctl start ssh
