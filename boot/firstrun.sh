@@ -27,16 +27,6 @@ locale-gen || true
 if command -v localectl &>/dev/null; then
   localectl set-keymap de
 fi
-if [ -f /etc/default/keyboard ]; then
-  sed -i 's/^XKBLAYOUT=.*/XKBLAYOUT="de"/' /etc/default/keyboard || true
-fi
-
-# 3) Hostname setzen
-TARGET_HOSTNAME="printalapi"
-echo "$TARGET_HOSTNAME" > /etc/hostname
-sed -i "s/^\(127\.0\.1\.1\).*$/\1 $TARGET_HOSTNAME/" /etc/hosts || \
-  (echo "127.0.1.1       $TARGET_HOSTNAME" >> /etc/hosts)
-echo "Hostname auf $TARGET_HOSTNAME gesetzt."
 
 # 4) Benutzer printalapi anlegen (falls nicht vorhanden) + sudo
 if id "$USER_NAME" &>/dev/null; then
@@ -86,24 +76,6 @@ if [ -f "$BOOT_AUTH_KEYS" ]; then
   chown -R "$USER_NAME":"$USER_NAME" "$USER_SSH_DIR"
   echo "SSH-Keys für $USER_NAME aktualisiert."
 
-  # 6) Passwort-Login für printalapi deaktivieren
-  echo "Deaktiviere Passwort-Login für $USER_NAME..."
-  if ! grep -q "^Match User $USER_NAME" /etc/ssh/sshd_config; then
-    cat <<EOF >> /etc/ssh/sshd_config
-
-Match User $USER_NAME
-    PasswordAuthentication no
-EOF
-    echo "SSH-Konfiguration für $USER_NAME ergänzt."
-  fi
-
-  systemctl restart ssh || systemctl restart sshd || true
-  echo "SSH-Dienst neu gestartet."
-else
-  echo "Keine Datei $BOOT_AUTH_KEYS gefunden – überspringe SSH-Key-Import und Passwort-Deaktivierung."
-fi
-
-
 echo -n "Setze Systemzeit: "
 date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
 
@@ -112,24 +84,5 @@ sudo apt update
 sudo apt install -y cups avahi-daemon libnss-mdns printer-driver-all cups-bsd cups-client zram-tools sysstat lsof python3 python3-pip python3-flask
 sudo apt-get purge colord
 
-echo "Mache zram Einstellungen"
-cat > /etc/default/zramswap << 'ZRAM'
-ALGO=lz4
-PERCENT=25
-PRIORITY=100
-ZRAM
-# Mehrere zram interface erstellen
-sudo tee /etc/modprobe.d/zram.conf >/dev/null << 'CONF'
-options zram num_devices=3
-CONF
 
-sudo tee /etc/modules-load.d/zram.conf >/dev/null << 'CONF'
-zram
-CONF
 
-# 7) Markiere als erledigt
-mkdir -p "$(dirname "$STATE_FILE")"
-touch "$STATE_FILE"
-echo "firstrun.sh als erledigt markiert: $STATE_FILE"
-
-echo "=== firstrun.sh abgeschlossen: $(date) ==="
