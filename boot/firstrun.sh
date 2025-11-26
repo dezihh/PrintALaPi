@@ -3,7 +3,7 @@ set -euo pipefail
 
 USER_NAME="printalapi"
 USER_PASS_PLAIN="printalapi"
-BOOT_AUTH_KEYS="/boot/authorized_keys"
+BOOT_AUTH_KEYS="/boot/firmware/authorized_keys"
 
 # 1) SSH aktivieren (Datei /boot/ssh anlegen)
 if [ ! -f /boot/ssh ]; then
