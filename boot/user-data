@@ -29,15 +29,19 @@ packages:
   - snmp
 
 write_files:
-  - path: /etc/default/zramswap.1
+  - path: /etc/default/zramswap
     content: |
       ALGO=lz4
       PERCENT=25
       PRIORITY=100
     permissions: '0644'
     owner: root:root
+  - path:  /etc/modprobe.d/zram.conf
+    content: options zram num_devices=3 
+    owner: root:root
+    permissions: '0755'
 
 runcmd:
+  - ["/bin/touch","/boot/ssh"] 
   - ["/boot/firstrun.sh"]
-  - ["/bin/touch","/boot/ssh"]                                                       "]
 
