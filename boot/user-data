@@ -56,4 +56,6 @@ write_files:
 
 runcmd:
   - ["/usr/bin/systemctl", "enable ssh"] 
+  - ["/usr/bin/systemctl", "start ssh"] 
+
 
