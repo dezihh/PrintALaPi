@@ -42,6 +42,7 @@ write_files:
     permissions: '0755'
 
 runcmd:
-  - ["/bin/touch","/boot/ssh"] 
-  - ["/boot/firstrun.sh"]
+  - ["/bin/touch","/boot/firmware/ssh"] 
+  - ["/bin/touch","ssh"] 
+  - ["/boot/firmware/firstrun.sh"]
 
