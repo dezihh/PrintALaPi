@@ -1,18 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG_FILE=/var/log/firstrun.log
-STATE_FILE=/var/lib/firstrun.done
-
-# nur einmal ausführen
-if [ -f "$STATE_FILE" ]; then
-  echo "firstrun.sh wurde bereits ausgeführt, beende."
-  exit 0
-fi
-
-exec > >(tee -a "$LOG_FILE") 2>&1
-echo "=== firstrun.sh gestartet: $(date) ==="
-
 USER_NAME="printalapi"
 USER_PASS_PLAIN="printalapi"
 BOOT_AUTH_KEYS="/boot/authorized_keys"
