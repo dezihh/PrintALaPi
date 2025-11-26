@@ -36,13 +36,13 @@ write_files:
       PRIORITY=100
     permissions: '0644'
     owner: root:root
-  - path:  /etc/modprobe.d/zram.conf
-    content: options zram num_devices=3 
+  - path: /etc/modprobe.d/zram.conf
+    content: options zram num_devices=3
     owner: root:root
     permissions: '0755'
 
 runcmd:
-  - ["/bin/touch","/boot/firmware/ssh"] 
-  - ["/bin/touch","ssh"] 
+  - ["/bin/touch", "/boot/firmware/ssh"]
+  - ["/bin/touch", "ssh"]
+  - ["/usr/bin/systemctl", "enable", "ssh"]
   - ["/boot/firmware/firstrun.sh"]
-
