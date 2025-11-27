@@ -1,10 +1,19 @@
 #cloud-config
 
-# Change to your locale
+# Hostname
+hostname: PrintALaPi
+manage_etc_hosts: true
+
+# WICHTIG: Timezone ZUERST setzen
+timezone: Europe/Berlin
+
+# Locale
+locale: de_DE.UTF-8
+
+# Keyboard
 keyboard:
   layout: de
-  variant: de
-  options: ctrl:nocaps
+  variant: nodeadkeys
 
 # Enable pwauth for ssh
 ssh_pwauth: true
@@ -20,9 +29,13 @@ users:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINu7NSzoROSCDrt/7C2zIW7k2YTo4H5nbQPI2PmsOFVo derek@t495"
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJ3Bhb61iZo38+cghPjlIkusOLqVUIwbURCESyLL6Cdb7drN8+0l+5VlhuKH5NeeWQrgM8RwI02HWfCwOqGBuO86cG7uUl+Fi7PENtpKy8KGBOeEutFrQcgTRnjeQiZB2on1X+KItgO/sla46L0qH9aKzoB6NzuuVWnopqvqs+HK/RshLmXCBmGpPF2UqUJIO69IhcbvmwnZPgfvOGSFpY9/9nV/+ZaABiEerj1i9bjJvVoLfZTQ8oOH5IQdDE/qZorWNIzDaBLlkn0929273FE48Q/b8RIwdx6fV137Ysbq67SJtvyP4eCRjZk8ux/BqnktSGD/6uKC8KgtuFAfLd root@knx"
 
-ntp:
-  servers:
-    - ntp.ubuntu.com
+# Zeit-Synchronisation VOR apt (curl ist im Base-Image vorhanden)
+bootcmd:
+  - [systemctl, stop, systemd-timesyncd]
+  - [bash, -c, 'date -s "$(curl -s -m 10 --head http://google.com | grep -i "^Date:" | cut -d" " -f2-)" || date -s "2025-01-01 12:00:00"']
+  - [systemctl, start, systemd-timesyncd]
+  - [timedatectl, set-ntp, "true"]
+  - [sleep, "10"]
 
 package_update: true
 package_upgrade: true
@@ -50,12 +63,12 @@ write_files:
     permissions: '0644'
     owner: root:root
   - path:  /etc/modprobe.d/zram.conf
-    content: options zram num_devices=3 
-    owner: root:root
-    permissions: '0755'
+    content: |
+      options zram num_devices=2
+    permissions: '0644'
 
 runcmd:
-  - ["/usr/bin/systemctl", "enable ssh"] 
-  - ["/usr/bin/systemctl", "start ssh"] 
+  - [systemctl, enable, ssh]
+  - [systemctl, start, ssh] 
 
 
