@@ -1,0 +1,15 @@
+[Unit]
+Description=Setup ZRAM device
+Before=local-fs.target
+Before=cups.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/sbin/modprobe zram
+ExecStart=/bin/echo $((512 * 1024 * 1024)) > /sys/block/zram1/disksize
+ExecStart=/sbin/mkfs.ext4 /dev/zram1
+ExecStart=/bin/mkdir -p /var/zram/mount
+
+[Install]
+WantedBy=multi-user.target
