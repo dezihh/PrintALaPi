@@ -2,6 +2,14 @@ export USER=printalapi
 
 sudo apt purge -y colord
 
+sudo echo $((512 * 1024 * 1024)) | sudo tee /sys/block/zram1/disksize
+sudo mkfs.ext4 /dev/zram1
+
+echo "/dev/zram1 /var/cache/cups ext4 defaults,noatime 0 0
+/dev/zram1 /var/spool/cups ext4 defaults,noatime 0 0
+/dev/zram1 /tmp ext4 defaults,noatime 0 0
+/dev/zram1 /var/log ext4 defaults,noatime 0 0" >>/etc/fstab
+
 echo "Trage $USER als LpAdmin ein..."
 sudo usermod -aG lpadmin $USER
 sudo systemctl enable --now cups avahi-daemon
