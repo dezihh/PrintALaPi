@@ -5,10 +5,26 @@ sudo apt purge -y colord
 sudo echo $((512 * 1024 * 1024)) | sudo tee /sys/block/zram1/disksize
 sudo mkfs.ext4 /dev/zram1
 
-echo "/dev/zram1 /var/cache/cups ext4 defaults,noatime 0 0
-/dev/zram1 /var/spool/cups ext4 defaults,noatime 0 0
-/dev/zram1 /tmp ext4 defaults,noatime 0 0
-/dev/zram1 /var/log ext4 defaults,noatime 0 0" >>/etc/fstab
+wget -O /etc/systemd/system/zram-bind-mounts.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-bind-mounts.service
+wget -O /etc/systemd/system/zram-mount.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-mount.service
+wget -O /etc/systemd/system/zram-setup.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-setup.service
+
+# Verzeichnis für ZRAM erstellen
+sudo mkdir -p /var/zram/mount
+
+# Services aktivieren
+sudo systemctl enable zram-setup.service
+sudo systemctl enable zram-mount.service
+sudo systemctl enable zram-bind-mounts.service
+
+# Daemon reload
+sudo systemctl daemon-reload
+
+# Services starten
+sudo systemctl start zram-setup.service
+sudo systemctl start zram-mount.service
+sudo systemctl start zram-bind-mounts.service
+
 
 echo "Trage $USER als LpAdmin ein..."
 sudo usermod -aG lpadmin $USER
