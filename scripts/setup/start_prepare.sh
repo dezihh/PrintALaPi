@@ -1,13 +1,11 @@
 #echo "Bitte Script als Hauptuser ausführen!"
-#echo -n "Setze Systemzeit: "
-#date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
-#date
-#echo 'Systemzeit korrekt? Sonst sudo date -s "11/23/25 11:38:00"'
-#echo -n 'Weiter? Abbruch mit Ctrl-C:'; read a
+echo -n "Setze Systemzeit: "
+sudo timedatectl set-timezone Europe/Berlin
+date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
 
-#sudo apt update
-#sudo apt install -y cups avahi-daemon libnss-mdns printer-driver-all cups-bsd cups-client zram-tools sysstat lsof python3 python3-pip python3-flask
-#sudo apt-get purge colord
+sudo apt update
+sudo apt install -y cups avahi-daemon libnss-mdns printer-driver-all ntp cups-bsd cups-client zram-tools sysstat lsof python3 python3-pip python3-flask
+sudo apt-get purge colord
 
 echo "Trage $USER als LpAdmin ein..."
 sudo usermod -aG lpadmin $USER
