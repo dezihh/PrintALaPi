@@ -1,0 +1,16 @@
+[Unit]
+Description=Bind mounts for ZRAM directories
+After=zram-mount.service
+Before=cups.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/mount --bind /var/zram/mount/cups-cache /var/cache/cups
+ExecStart=/bin/mount --bind /var/zram/mount/cups-spool /var/spool/cups
+ExecStart=/bin/mount --bind /var/zram/mount/tmp /tmp
+ExecStart=/bin/mount --bind /var/zram/mount/log /var/log
+ExecStop=/bin/umount /var/cache/cups /var/spool/cups /tmp /var/log
+
+[Install]
+WantedBy=multi-user.target
