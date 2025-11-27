@@ -1,11 +1,6 @@
-#echo "Bitte Script als Hauptuser ausführen!"
-echo -n "Setze Systemzeit: "
-sudo timedatectl set-timezone Europe/Berlin
-date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
+export USER=printalapi
 
-sudo apt update
-sudo apt install -y cups avahi-daemon libnss-mdns printer-driver-all ntp cups-bsd cups-client zram-tools sysstat lsof python3 python3-pip python3-flask
-sudo apt-get purge colord
+sudo apt purge -y colord
 
 echo "Trage $USER als LpAdmin ein..."
 sudo usermod -aG lpadmin $USER
@@ -16,21 +11,6 @@ sudo systemctl restart cups
 sudo lpadmin -p LexmarkE330 -o printer-is-shared=true
 # AirPrint-kompatible MIME-Typen
 sudo lpadmin -p LexmarkE330 -o printer-op-policy=default
-
-#cat > /etc/default/zramswap << 'ZRAM'
-#ALGO=lz4
-#PERCENT=25
-#PRIORITY=100
-#ZRAM
-
-# Mehrere zram interface erstellen
-#sudo tee /etc/modprobe.d/zram.conf >/dev/null << 'CONF'
-#options zram num_devices=3
-#CONF
-
-#sudo tee /etc/modules-load.d/zram.conf >/dev/null << 'CONF'
-#zram
-#CONF
 
 sudo tee /usr/local/sbin/setup-zram-fs.sh >/dev/null << 'EOF'
 #!/bin/sh
