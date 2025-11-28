@@ -46,6 +46,7 @@ sudo systemctl disable logrotate.timer
 sudo systemctl stop logrotate.service
 sudo systemctl disable logrotate.service
 
+sudo wget -O /etc/cups/cupsd.conf https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/cupsd.conf
 
 #echo "Trage $USER als LpAdmin ein..."
 #sudo usermod -aG lpadmin $USER
