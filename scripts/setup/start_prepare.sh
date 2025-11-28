@@ -2,12 +2,12 @@ export USER=printalapi
 
 sudo apt purge -y colord
 
-sudo echo $((512 * 1024 * 1024)) | sudo tee /sys/block/zram1/disksize
-sudo mkfs.ext4 /dev/zram1
+sudo swapoff /dev/zram0
+sudo systemctl stop zramswap
+sudo systemctl disable zramswap
 
-wget -O /etc/systemd/system/zram-bind-mounts.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-bind-mounts.service
-wget -O /etc/systemd/system/zram-mount.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-mount.service
-wget -O /etc/systemd/system/zram-setup.service https://github.com/dezihh/PrintALaPi/blob/8e3dbcdf5c9433cc7e1ff2b5c26cb91ee73dfafe/scripts/zram-setup.service
+
+
 
 # Verzeichnis für ZRAM erstellen
 sudo mkdir -p /var/zram/mount
