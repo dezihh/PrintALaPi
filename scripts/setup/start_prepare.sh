@@ -46,10 +46,8 @@ sudo systemctl disable logrotate.timer
 sudo systemctl stop logrotate.service
 sudo systemctl disable logrotate.service
 
-
-
-
-
+echo "/mnt/zram/cups/spool /var/spool/cups none bind 0 0
+/mnt/zram/cups/cache /var/cache/cups none bind 0 0" >>/etc/fstab
 
 #echo "Trage $USER als LpAdmin ein..."
 #sudo usermod -aG lpadmin $USER
