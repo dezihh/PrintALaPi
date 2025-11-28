@@ -22,10 +22,7 @@ ExecStart=/bin/bash -c '\
   mkdir -p /mnt/zram/root'
 ExecStop=/bin/bash -c '\
   umount /mnt/zram && \
-  swapoff /dev/zram0
-  mkdir -p /mnt/zram/{tmp,shm} && \
-  chmod 1777 /mnt/zram/tmp && \
-  chmod 1777 /mnt/zram/shm'
+  swapoff /dev/zram'
 
 [Install]
 WantedBy=multi-user.target
