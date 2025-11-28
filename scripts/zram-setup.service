@@ -5,19 +5,24 @@ After=multi-user.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-# ExecStartPre entfernt - Modul wird schon von /etc/modprobe.d/zram.conf geladen
-ExecStart=/bin/bash -c 'echo lz4 > /sys/block/zram0/comp_algorithm'
-ExecStart=/bin/bash -c 'echo 200M > /sys/block/zram0/disksize'
-ExecStart=/bin/bash -c 'echo lz4 > /sys/block/zram1/comp_algorithm'
-ExecStart=/bin/bash -c 'echo 200M > /sys/block/zram1/disksize'
-ExecStart=/sbin/mkswap /dev/zram0
-ExecStart=/sbin/swapon /dev/zram0 -p 100
-ExecStart=/sbin/mkfs.ext4 /dev/zram1
-ExecStart=/bin/mkdir -p /mnt/zram
-ExecStart=/bin/mount /dev/zram1 /mnt/zram
-ExecStop=/bin/umount /mnt/zram
-ExecStop=/sbin/swapoff /dev/zram0
-# Modprobe -r entfernt da es beim Shutdown automatisch passiert
+ExecStart=/bin/bash -c '\
+  swapoff /dev/zram0 && \
+  modprobe -r zram && \
+  modprobe zram num_devices=2 && \
+  echo lz4 > /sys/block/zram0/comp_algorithm && \
+  echo 200M > /sys/block/zram0/disksize && \
+  echo lz4 > /sys/block/zram1/comp_algorithm && \
+  echo 200M > /sys/block/zram1/disksize && \
+  mkswap /dev/zram0 && \
+  swapon /dev/zram0 -p 100 && \
+  mkfs.ext4 /dev/zram1 && \
+  mkdir -p /mnt/zram && \
+  mount /dev/zram1 /mnt/zram && \
+  chmod 1777 /mnt/zram'
+ExecStop=/bin/bash -c '\
+  umount /mnt/zram && \
+  swapoff /dev/zram0'
 
 [Install]
 WantedBy=multi-user.target
+~                          
