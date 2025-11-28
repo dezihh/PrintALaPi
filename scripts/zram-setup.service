@@ -18,7 +18,8 @@ ExecStart=/bin/bash -c '\
   mkfs.ext4 /dev/zram1 && \
   mkdir -p /mnt/zram && \
   mount /dev/zram1 /mnt/zram && \
-  chmod 1777 /mnt/zram'
+  chmod 1777 /mnt/zram && \
+  mkdir -p /mnt/zram/root'
 ExecStop=/bin/bash -c '\
   umount /mnt/zram && \
   swapoff /dev/zram0
