@@ -5,7 +5,9 @@ sudo apt purge -y colord
 sudo swapoff /dev/zram0
 sudo systemctl stop zramswap
 sudo systemctl disable zramswap
+sudo rm -f /etc/default/zramswap.dpkg-dist
 
+wget -O /etc/systemd/system/zram-setup.service https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/zram-setup.service
 sudo systemctl daemon-reload
 sudo systemctl enable zram-setup.service
 sudo systemctl start zram-setup.service
