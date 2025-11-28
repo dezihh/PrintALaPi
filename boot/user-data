@@ -1,21 +1,13 @@
 #cloud-config
-
-# Hostname
 hostname: PrintALaPi
 manage_etc_hosts: true
-
-# WICHTIG: Timezone ZUERST setzen
 timezone: Europe/Berlin
-
-# Locale
 locale: de_DE.UTF-8
 
-# Keyboard
 keyboard:
   layout: de
   variant: nodeadkeys
 
-# Enable pwauth for ssh
 ssh_pwauth: true
 
 users:
@@ -27,12 +19,12 @@ users:
     ssh_authorized_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINu7NSzoROSCDrt/7C2zIW7k2YTo4H5nbQPI2PmsOFVo derek@t495"
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJ3Bhb61iZo38+cghPjlIkusOLqVUIwbURCESyLL6Cdb7drN8+0l+5VlhuKH5NeeWQrgM8RwI02HWfCwOqGBuO86cG7uUl+Fi7PENtpKy8KGBOeEutFrQcgTRnjeQiZB2on1X+KItgO/sla46L0qH9aKzoB6NzuuVWnopqvqs+HK/RshLmXCBmGpPF2UqUJIO69IhcbvmwnZPgfvOGSFpY9/9nV/+ZaABiEerj1i9bjJvVoLfZTQ8oOH5IQdDE/qZorWNIzDaBLlkn0929273FE48Q/b8RIwdx6fV137Ysbq67SJtvyP4eCRjZk8ux/BqnktSGD/6uKC8KgtuFAfLd root@knx"
-  chpasswd:
-    list: |
-      printalapi:printalapi
-     expire: True
 
-# Zeit-Synchronisation VOR apt (curl ist im Base-Image vorhanden)
+chpasswd:
+  list: |
+    printalapi:printalapi
+  expire: true
+
 bootcmd:
   - [systemctl, stop, systemd-timesyncd]
   - [bash, -c, 'date -s "$(curl -s -m 10 --head http://google.com | grep -i "^Date:" | cut -d" " -f2-)" || date -s "2025-01-01 12:00:00"']
@@ -44,16 +36,17 @@ package_update: true
 package_upgrade: true
 
 packages:
-  - cups 
-  - avahi-daemon 
-  - libnss-mdns 
-  - printer-driver-all 
-  - cups-bsd cups-client 
-  - zram-tools 
-  - sysstat 
-  - lsof 
-  - python3 
-  - python3-pip 
+  - cups
+  - avahi-daemon
+  - libnss-mdns
+  - printer-driver-all
+  - cups-bsd
+  - cups-client
+  - zram-tools
+  - sysstat
+  - lsof
+  - python3
+  - python3-pip
   - python3-flask
   - git
 
@@ -65,21 +58,20 @@ write_files:
       PRIORITY=100
     permissions: '0644'
     owner: root:root
-  - path:  /etc/modprobe.d/zram.conf
+  - path: /etc/modprobe.d/zram.conf
     content: |
       options zram num_devices=2
     permissions: '0644'
 
 runcmd:
   - [systemctl, enable, ssh]
-  - [systemctl, start, ssh] 
-  - [change, -d, "0", pi]
-  - [weget, https://github.com/dezihh/PrintALaPi/blob/09d4dee60240c635dfcc602e55ce0585553d3ceb/scripts/setup/start_prepare.sh, -O, /root/prpare.sh]
+  - [systemctl, start, ssh]
+  - [chage, -d, "0", printalapi]
+  - [wget, https://github.com/dezihh/PrintALaPi/raw/09d4dee60240c635dfcc602e55ce0585553d3ceb/scripts/setup/start_prepare.sh, -O, /root/prepare.sh]
+  - [chmod, +x, /root/prepare.sh]
 
 power_state:
   mode: reboot
   message: "Cloud-init configuration done"
   timeout: 30
   condition: true
-
-
