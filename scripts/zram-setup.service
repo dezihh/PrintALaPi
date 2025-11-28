@@ -1,15 +1,23 @@
 [Unit]
-Description=Setup ZRAM device
-Before=local-fs.target
-Before=cups.service
+Description=Setup ZRAM for swap and filesystem
+After=multi-user.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/sbin/modprobe zram
-ExecStart=/bin/echo $((512 * 1024 * 1024)) > /sys/block/zram1/disksize
+# ExecStartPre entfernt - Modul wird schon von /etc/modprobe.d/zram.conf geladen
+ExecStart=/bin/bash -c 'echo lz4 > /sys/block/zram0/comp_algorithm'
+ExecStart=/bin/bash -c 'echo 200M > /sys/block/zram0/disksize'
+ExecStart=/bin/bash -c 'echo lz4 > /sys/block/zram1/comp_algorithm'
+ExecStart=/bin/bash -c 'echo 200M > /sys/block/zram1/disksize'
+ExecStart=/sbin/mkswap /dev/zram0
+ExecStart=/sbin/swapon /dev/zram0 -p 100
 ExecStart=/sbin/mkfs.ext4 /dev/zram1
-ExecStart=/bin/mkdir -p /var/zram/mount
+ExecStart=/bin/mkdir -p /mnt/zram
+ExecStart=/bin/mount /dev/zram1 /mnt/zram
+ExecStop=/bin/umount /mnt/zram
+ExecStop=/sbin/swapoff /dev/zram0
+# Modprobe -r entfernt da es beim Shutdown automatisch passiert
 
 [Install]
 WantedBy=multi-user.target
