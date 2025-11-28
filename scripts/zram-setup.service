@@ -22,7 +22,9 @@ ExecStart=/bin/bash -c '\
   mkdir -p /mnt/zram/cups/spool && \
   mkdir -p /mnt/zram/cups/cache && \
   chown -R root:lp /mnt/zram/cups/ && \
-  chmod -R 775 /mnt/zram/cups '
+  chmod -R 775 /mnt/zram/cups && \
+  mount --bind /mnt/zram/cups/spool /var/spool/cups && \
+  mount --bind /mnt/zram/cups/cache /var/cache/cups'
 
 
 ExecStop=/bin/bash -c '\
