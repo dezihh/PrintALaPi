@@ -67,7 +67,7 @@ runcmd:
   - [systemctl, enable, ssh]
   - [systemctl, start, ssh]
   - [chage, -d, "0", printalapi]
-  - [wget, https://github.com/dezihh/PrintALaPi/raw/09d4dee60240c635dfcc602e55ce0585553d3ceb/scripts/setup/start_prepare.sh, -O, /root/prepare.sh]
+  - [wget, https://github.com/dezihh/PrintALaPi/blob/main/scripts/setup/start_prepare.sh, -O, /root/prepare.sh]
   - [chmod, +x, /root/prepare.sh]
 
 power_state:
