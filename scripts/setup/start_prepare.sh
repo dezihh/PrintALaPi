@@ -42,7 +42,6 @@ sudo wget -O /etc/motd https://raw.githubusercontent.com/dezihh/PrintALaPi/maste
 
 # No stay in homedir (important for RO Mode)
 sudo echo "# Prevent starting D-Bus" >>/etc/profile
-sudo echo "cd /tmp >/dev/null 2>&1 || true" >> /etc/profile
 
 
 
