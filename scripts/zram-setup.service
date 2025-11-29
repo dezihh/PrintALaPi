@@ -21,6 +21,7 @@ ExecStart=/bin/bash -c '\
   chmod 1777 /mnt/zram && \
   mkdir -p /mnt/zram/cups/spool && \
   mkdir -p /mnt/zram/cups/cache && \
+  mkdir -p /mnt/zram/cups/cache/tmp && \
   chown -R root:lp /mnt/zram/cups/ && \
   chmod -R 775 /mnt/zram/cups && \
   mount --bind /mnt/zram/cups/spool /var/spool/cups && \
