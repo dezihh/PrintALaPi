@@ -1,0 +1,25 @@
++-------------------------------------------------------+
+|          ## Hi this is PrintALaPi ##                  |
++-------------------------------------------------------+
+
+[IMPORTANT] Most services are stopped for minimal footprint & reboot safety
+
+Enable RW mode (to make changes):
+  sudo mount -o remount,rw /
+
+Switch back to RO mode:
+  sudo mount -o remount,ro /
+
+PRINTER WEB: http://printalapi.local:631
+
+=== HELPFUL COMMANDS ===
+
+Add printer:
+  sudo lpadmin -p LexmarkE330 -v usb://Lexmark/E330?serial=3802N2L -m foomatic-db-compressed-ppds:0/ppd/foomatic-ppd/Lexmark-E230-pxlmono.ppd -E
+
+Finished jobs:        lpstat -W completed -o
+Cancel all jobs:      cancel -a
+Printer details:      lpstat -v
+Full status:          lpstat -t
+
+--- PrintALaPi ready for operation ---
