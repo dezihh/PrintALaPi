@@ -51,7 +51,7 @@ sudo systemctl restart cups
 
 sudo usermod -aG lpadmin printalapi
 
-sudo wget -O /etc/motd 
+sudo wget -O /etc/motd https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/motd
 # No stay in homedir (important for RO Mode)
 sudo sh -c 'echo "cd /tmp >/dev/null 2>&1 || true" >> /etc/profile'
 #sudo systemctl enable --now cups avahi-daemon
