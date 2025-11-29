@@ -63,7 +63,7 @@ Notes:
 
 ## Troubleshooting
 
-- For minimizing IO to Flasj, there are no Files at /var/log!
+- Respecting for minimizing IO to flash SD, there are no files at /var/log!
 - If `/root/prepare.sh` is missing, verify the Pi had network access on first boot and that the runcmd download succeeded.
 - If hostname resolution to `printalapi.local` fails, ensure `avahi-daemon` is installed and running and that your network supports mDNS.
 
