@@ -47,9 +47,12 @@ sudo systemctl stop logrotate.service
 sudo systemctl disable logrotate.service
 
 sudo wget -O /etc/cups/cupsd.conf https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/cupsd.conf
+sudo systemctl restart cups
 
-#echo "Trage $USER als LpAdmin ein..."
-#sudo usermod -aG lpadmin $USER
+sudo usermod -aG lpadmin printalapi
+
+# No stay in homedir (important for RO Mode)
+sudo sh -c 'echo "cd /tmp >/dev/null 2>&1 || true" >> /etc/profile'
 #sudo systemctl enable --now cups avahi-daemon
 #sudo wget -O /etc/cups/cupsd.conf "https://raw.githubusercontent.com/dezihh/PrintALaPi/master/scripts/cupsd.conf"
 #sudo systemctl restart cups
